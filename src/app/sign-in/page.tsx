@@ -16,14 +16,13 @@ import Img1 from '@/assets/signup.png';
 import LogoSvg from '@/assets/svgs/logo';
 import { Icons } from '@/data/svgs';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const SignInPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const { loading, error } = useSelector((state: AppState) => state.auth);
-  const { toast } = useToast();
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -36,17 +35,21 @@ const SignInPage = () => {
   const onSubmit = async (values: SignInFormValues) => {
     try {
       const res = await dispatch(loginUser(values)).unwrap();
-      console.log('the msg:', res.message)
       router.push('/');
-      toast({
-        title: "Success",
-        description: res.message,
+      toast.success("Sign In Successful", {
+        description: res.message || "Welcome back! You've successfully signed in.",
+        action: {
+          label: "Go to Dashboard",
+          onClick: () => router.push('/dashboard'),
+        },
       });
     } catch (err) {
-      toast({
-        title: "Sign In Failed",
-        description: "There was an error signing in. Please try again.",
-        variant: "destructive",
+      toast.error("Sign In Failed", {
+        description: "There was an error signing in. Please check your credentials and try again.",
+        action: {
+          label: "Retry",
+          onClick: () => form.handleSubmit(onSubmit)(),
+        },
       });
       console.error('Failed to sign in:', err);
     }

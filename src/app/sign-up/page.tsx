@@ -17,7 +17,7 @@ import Img1 from '@/assets/signup.png';
 import LogoSvg from '@/assets/svgs/logo';
 import { Icons } from '@/data/svgs';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const SignUpPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,7 +25,6 @@ const SignUpPage = () => {
   const [checked, setChecked] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { loading, error } = useSelector((state: AppState) => state.auth);
-  const { toast } = useToast();
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -40,25 +39,32 @@ const SignUpPage = () => {
 
   const onSubmit = async (values: SignUpFormValues) => {
     if (!checked) {
-      toast({
-        title: "Terms & Conditions",
+      toast.error("Terms & Conditions Required", {
         description: "Please agree to the Terms & Conditions before submitting.",
-        variant: "destructive",
+        action: {
+          label: "Dismiss",
+          onClick: () => console.log("Dismissed unchecked terms toast"),
+        },
       });
       return;
     }
     try {
       await dispatch(registerUser(values)).unwrap();
-      toast({
-        title: "Success",
+      toast.success("Account Created", {
         description: "Your account has been created successfully!",
+        action: {
+          label: "Sign In",
+          onClick: () => router.push('/sign-in'),
+        },
       });
       router.push('/sign-in');
     } catch (err) {
-      toast({
-        title: "Registration Failed",
+      toast.error("Registration Failed", {
         description: "There was an error creating your account. Please try again.",
-        variant: "destructive",
+        action: {
+          label: "Retry",
+          onClick: () => form.handleSubmit(onSubmit)(),
+        },
       });
       console.error('Failed to register:', err);
     }
